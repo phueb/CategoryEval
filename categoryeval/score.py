@@ -11,6 +11,7 @@ def calc_score(pred_sims, gold_sims, metric='ba'):
     gold_sims is matrix of integers with shape [num_probes, num_probes]
     """
     print(f'Computing {metric}...')
+
     assert pred_sims.shape == gold_sims.shape
 
     def calc_signals(_probe_sims, _labels, thr):  # vectorized algorithm is 20X faster
@@ -84,7 +85,6 @@ def calc_score(pred_sims, gold_sims, metric='ba'):
     # use best_thr
     results = fun(best_thr)
     res = np.mean(results)
-    print(res)
     return res
 
 

@@ -28,7 +28,7 @@ class ProbeStore(object):
                 probe = data[0]
                 cat = data[1]
                 if probe not in self.w2id:
-                    print(f'WARNING: Probe "{probe}" not in vocabulary -> Excluded from analysis')
+                    print(f'WARNING: Probe {probe: <12} not in vocabulary -> Excluded from analysis')
                 else:
                     probe2cat[probe] = cat
         return probe2cat
