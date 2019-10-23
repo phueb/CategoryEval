@@ -5,8 +5,13 @@ from functools import partial
 from categoryeval import config
 
 
-def calc_score(probe_sims, cluster_metric='ba'):
-    print(f'Computing {cluster_metric}...')
+def calc_score(pred_sims, gold_sims, metric='ba'):
+    """
+    pred_sims is matrix of floats with shape [num_probes, num_probes]
+    gold_sims is matrix of integers with shape [num_probes, num_probes]
+    """
+    print(f'Computing {metric}...')
+    assert pred_sims.shape == gold_sims.shape
 
     def calc_signals(_probe_sims, _labels, thr):  # vectorized algorithm is 20X faster
         probe_sims_clipped = np.clip(_probe_sims, 0, 1)
@@ -21,10 +26,9 @@ def calc_score(probe_sims, cluster_metric='ba'):
         return tp, tn, fp, fn
 
     # define calc_signals_partial
-    check_nans(probe_sims, name='probe_sims')
-    gold_mat = make_gold()
-    labels = gold_mat[np.triu_indices(len(gold_mat), k=1)]
-    calc_signals_partial = partial(calc_signals, probe_sims, labels)
+    check_nans(pred_sims, name='probe_sims')
+    labels = gold_sims[np.triu_indices(len(gold_sims), k=1)]
+    calc_signals_partial = partial(calc_signals, pred_sims, labels)
 
     def calc_probes_fs(thr):
         """
@@ -62,12 +66,12 @@ def calc_score(probe_sims, cluster_metric='ba'):
         return ba
 
     # use bayes optimization to find best_thr
-    sims_mean = np.mean(probe_sims).item()
-    if cluster_metric == 'f1':
+    sims_mean = np.mean(pred_sims).item()
+    if metric == 'f1':
         fun = calc_probes_fs
-    elif cluster_metric == 'ba':
+    elif metric == 'ba':
         fun = calc_probes_ba
-    elif cluster_metric == 'ck':
+    elif metric == 'ck':
         fun = calc_probes_ck
     else:
         raise AttributeError('Invalid arg to "cluster_metric".')
@@ -88,16 +92,3 @@ def check_nans(mat, name='unnamed'):
     if np.any(np.isnan(mat)):
         num_nans = np.sum(np.isnan(mat))
         print(f'Found {num_nans} Nans in {name}')
-
-
-def make_gold(probe_store):
-    num_rows = probe_store.num_probes
-    num_cols = probe_store.num_probes
-    res = np.zeros((num_rows, num_cols))
-    for i in range(num_rows):
-        probe1 = probe_store.types[i]
-        for j in range(num_cols):
-            probe2 = probe_store.types[j]
-            if probe_store.probe2cat[probe1] == probe_store.probe2cat[probe2]:
-                res[i, j] = 1
-    return res.astype(np.bool)
