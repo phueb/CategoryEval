@@ -77,7 +77,7 @@ def calc_score(pred_sims, gold_sims, metric='ba'):
     else:
         raise AttributeError('Invalid arg to "cluster_metric".')
     bo = BayesianOptimization(fun, {'thr': (0.0, 1.0)}, verbose=config.Eval.verbose)
-    bo.init_points.extend(config.Eval.eval_thresholds)
+    bo.init_points.extend(config.Eval.eval_thresholds + [[pred_sims.mean()]])
     gp_params = {"alpha": 1e-5, "n_restarts_optimizer": 2}  # without this, warnings about predicted variance < 0
     bo.maximize(init_points=config.Eval.num_opt_init_steps, n_iter=config.Eval.num_opt_steps,
                 acq="poi", xi=config.Eval.xi, **gp_params)  # smaller xi: exploitation

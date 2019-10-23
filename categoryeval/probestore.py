@@ -15,7 +15,7 @@ class ProbeStore(object):
         self.probes_name = probes_name
         self.w2id = w2id  # this is a dict mapping all vocabulary words to their IDs
 
-        self.file_name = f'{corpus_name}_{len(w2id)}_{probes_name}.txt'
+        self.file_name = f'{corpus_name}_{probes_name}.txt'
         print(f'Initialized probe_store from {self.file_name}')
 
     @cached_property
