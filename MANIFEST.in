@@ -1,2 +1,2 @@
 include README.md
-include probes/*.txt
+include categoryeval/probes/*.txt

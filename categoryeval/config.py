@@ -4,7 +4,7 @@ from pathlib import Path
 class Dirs:
     root = Path(__file__).parent.parent
     src = Path(__file__).parent
-    probes = root / 'probes'
+    probes = src / 'probes'
 
 
 class Eval:

@@ -1,6 +1,7 @@
 from cached_property import cached_property
 from sortedcontainers import SortedSet
 import numpy as np
+from typing import List
 
 from categoryeval import config
 
@@ -75,7 +76,7 @@ class ProbeStore(object):
     # //////////////////////////////////////////////// for evaluation
 
     @cached_property
-    def vocab_ids(self):
+    def vocab_ids(self) -> List[int]:
         """
         return IDs of probes in vocabulary.
         used for retrieving the correct word representation for each probe
