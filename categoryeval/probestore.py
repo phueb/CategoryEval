@@ -1,7 +1,7 @@
 from cached_property import cached_property
 from sortedcontainers import SortedSet
 import numpy as np
-from typing import List
+from typing import List, Optional, Dict, Set
 
 from categoryeval import config
 
@@ -11,10 +11,15 @@ class ProbeStore(object):
     Stores probe-related data.
     """
 
-    def __init__(self, corpus_name, probes_name, w2id):
+    def __init__(self,
+                 corpus_name: str,
+                 probes_name: str,
+                 w2id: Dict[str, int],
+                 excluded: Optional[Set] = None):
         self.corpus_name = corpus_name
         self.probes_name = probes_name
         self.w2id = w2id  # this is a dict mapping all vocabulary words to their IDs
+        self.excluded = {} if excluded is None else excluded
 
         self.file_name = f'{corpus_name}_{probes_name}.txt'
         print(f'Initialized probe_store from {self.file_name}')
@@ -30,6 +35,8 @@ class ProbeStore(object):
                 cat = data[1]
                 if probe not in self.w2id:
                     print(f'WARNING: Probe {probe: <12} not in vocabulary -> Excluded from analysis')
+                elif probe in self.excluded:
+                    print(f'WARNING: Probe {probe: <12} in excluded list  -> Excluded from analysis')
                 else:
                     probe2cat[probe] = cat
         return probe2cat
@@ -59,7 +66,7 @@ class ProbeStore(object):
 
     @cached_property
     def cat2probes(self):
-        cat2probes = {cat: [probe for probe in self.types if self.probe2cat[probe] == cat]
+        cat2probes = {cat: {probe for probe in self.types if self.probe2cat[probe] == cat}
                       for cat in self.cats}
         return cat2probes
 

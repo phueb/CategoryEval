@@ -12,7 +12,8 @@ def calc_score(pred_sims, gold_sims, metric='ba'):
     """
     print(f'Computing {metric}...')
 
-    assert pred_sims.shape == gold_sims.shape
+    if pred_sims.shape != gold_sims.shape:
+        raise ValueError(f'Shape of predicted={pred_sims.shape} does not match gold similarities ={gold_sims.shape}')
 
     def calc_signals(_probe_sims, _labels, thr):  # vectorized algorithm is 20X faster
         probe_sims_clipped = np.clip(_probe_sims, 0, 1)
