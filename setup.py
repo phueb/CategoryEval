@@ -9,12 +9,14 @@ setup(
     include_package_data=True,
     install_requires=[
         'bayesian-optimization==0.6',
-        'cached_property',
-        'sortedcontainers',
+        'cytoolz==0.10.1',
+        'scipy==1.4.1',
+        'matplotlib==3.1.2',
+        'numpy==1.18.1',
     ],
     url='https://github.com/phueb/CategoryEval',
     license='',
     author='Philip Huebner',
     author_email='info@philhuebner.com',
-    description='Evaluate category knowledge from word representations'
+    description='Evaluate word representations for category knowledge'
 )

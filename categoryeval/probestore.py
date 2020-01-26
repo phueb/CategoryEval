@@ -21,13 +21,10 @@ class ProbeStore(object):
         self.w2id = w2id  # this is a dict mapping all vocabulary words to their IDs
         self.excluded = {} if excluded is None else excluded
 
-        self.file_name = f'{corpus_name}_{probes_name}.txt'
-        print(f'Initialized probe_store from {self.file_name}')
-
     @cached_property
     def probe2cat(self):
         probe2cat = {}
-        p = config.Dirs.probes / self.file_name
+        p = config.Dirs.probes / self.corpus_name / 'ba' / f'{self.probes_name}.txt'
         with p.open('r') as f:
             for line in f:
                 data = line.strip().strip('\n').split()
