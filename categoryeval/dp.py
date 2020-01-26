@@ -22,10 +22,12 @@ class DPScorer:
 
         print('Initializing DPScorer...')
 
+        assert len(probes_names) == len(set(probes_names))
+
         self.corpus_name = corpus_name
         self.probes_names = probes_names
         self.num_parts = num_parts
-        self.name2probes = {name: types if name == 'unigram' else (self.load_probes(corpus_name, name))
+        self.name2probes = {name: types if name == 'unconditional' else (self.load_probes(corpus_name, name))
                             for name in self.probes_names}
 
         # make q for each name - q is a theoretical probability distribution over x-words
@@ -56,8 +58,6 @@ class DPScorer:
         where the prototype is the category to which all probes labeled "probes_name" belong.
         dp = distance-to-prototype
         """
-        print(f'Calculating distance-to-prototype with probes_name={probes_name}')
-
         assert np.ndim(predictions_mat) == 2
         assert np.sum(predictions_mat[0]).round(1).item() == 1.0, np.sum(predictions_mat[0]).round(1).item()
 
@@ -116,8 +116,8 @@ class DPScorer:
         which is defined as each word representing an iid sample from the distribution.
         """
 
-        if probes_name == 'unigram':  # "unigram" is a category whose members are all words in vocab
-            return self._make_unigram_q()
+        if probes_name == 'unconditional':  # "unconditional" is a category whose members are all words in vocab
+            return self._make_unconditional_q()
 
         # get slice of ct matrix
         probes = self.name2probes[probes_name]
@@ -141,7 +141,7 @@ class DPScorer:
             res.append(prob)
         return np.array(res)
 
-    def _make_unigram_q(self
+    def _make_unconditional_q(self
                         ) -> np.ndarray:
         """
         make theoretical next-word distribution for the "average" word;

@@ -15,6 +15,8 @@ class BAScorer:
 
         print('Initializing BAScorer...')
 
+        assert len(probes_names) == len(set(probes_names))
+
         self.probes_names = probes_names
         self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id)
                            for probes_name in probes_names}
