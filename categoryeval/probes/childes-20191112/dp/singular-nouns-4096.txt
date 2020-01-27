@@ -227,7 +227,6 @@ wife
 shampoo
 duck
 freight
-peek_a_boo
 plant
 care
 rooster
@@ -255,7 +254,6 @@ children
 moment
 skirt
 ceiling
-cemetery
 clunk
 milkshake
 bridge

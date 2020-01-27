@@ -51,7 +51,7 @@ class DPScorer:
                 predictions_mat: np.ndarray,
                 probes_name: str,
                 return_mean: bool = True,
-                return_sim: bool = False,
+                return_mutual_info: bool = False,
                 ) -> Union[float, List[float]]:
         """
         measure bits divergence of a set of next-word predictions from prototype next-word probability distribution,
@@ -61,8 +61,8 @@ class DPScorer:
         assert np.ndim(predictions_mat) == 2
         assert np.sum(predictions_mat[0]).round(1).item() == 1.0, np.sum(predictions_mat[0]).round(1).item()
 
-        if return_sim:
-            fn = self._pearson
+        if return_mutual_info:
+            fn = self._mutual_info
         else:
             fn = self._calc_kl_divergence
 
@@ -76,11 +76,11 @@ class DPScorer:
             return klds
 
     @staticmethod
-    def _pearson(p: np.ndarray,
-                 q: np.ndarray,
-                 ) -> float:
+    def _mutual_info(p: np.ndarray,
+                     q: np.ndarray,
+                     ) -> float:
 
-        return np.corrcoef(p, q)[0, 1].item()
+        return NotImplementedError  # TODO implement
 
     @staticmethod
     def _calc_kl_divergence(p: np.ndarray,
