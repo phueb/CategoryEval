@@ -31,12 +31,12 @@ class DPScorer:
         self.name2probes = {name: types if name == 'unconditional' else (self.load_probes(corpus_name, name))
                             for name in self.probes_names}
 
-        # make q for each name - q is a theoretical probability distribution over x-words
+        # make p for each name - p is a theoretical probability distribution over x-words (next-words)
         # rows index contexts, and columns index next-words
         self.ct_mat, self.x_words, y_words_ = make_context_by_term_matrix(tokens, context_size=1)
         self.total_frequency = self.ct_mat.sum().sum().item()
         self.y_words = [self.tuple2str(yw) for yw in y_words_]  # convert tuple to str
-        self.name2q = {name: self._make_q(name) for name in self.probes_names}
+        self.name2p = {name: self._make_p(name) for name in self.probes_names}
 
         # make name2part2probes - assign probes to a corpus partition
         split_size = len(tokens) // num_parts
@@ -49,29 +49,36 @@ class DPScorer:
                 self.name2part2probes[name][part].append(probe)
 
     def calc_dp(self,
-                predictions_mat: np.ndarray,
+                qs: np.ndarray,
                 probes_name: str,
                 return_mean: bool = True,
-                metric: str = 'ce'
+                metric: str = 'js'
                 ) -> Union[float, List[float]]:
         """
         measure bits divergence of a set of next-word predictions from prototype next-word probability distribution,
         where the prototype is the category to which all probes labeled "probes_name" belong.
         dp = divergence-from-prototype
-        """
-        assert np.ndim(predictions_mat) == 2
-        assert np.sum(predictions_mat[0]).round(1).item() == 1.0, np.sum(predictions_mat[0]).round(1).item()
 
-        if metric == 'x':
-            fn = drv.entropy_cross
-        elif metric == 'ce':
-            fn = drv.entropy_conditional
+        "p" is a true probability distribution
+        "q" is an approximation
+        """
+        assert np.ndim(qs) == 2
+        assert np.sum(qs[0]).round(1).item() == 1.0, np.sum(qs[0]).round(1).item()
+
+        if metric == 'ce':
+            raise NotImplementedError
+        elif metric == 'xe':
+            fn = drv.entropy_cross_pmf
+        elif metric == 're':
+            raise NotImplementedError
+        elif metric == 'js':
+            fn = drv.divergence_jensenshannon_pmf
         else:
             raise AttributeError('Invalid arg to "metric".')
 
         # compare each word's predicted and expected next-word probability distribution
-        q = self.name2q[probes_name]
-        res = [fn(p, q) for p in predictions_mat]
+        p = self.name2p[probes_name]
+        res = [fn(p, q) for q in qs]
 
         if return_mean:
             return np.mean(res).item()
@@ -82,8 +89,8 @@ class DPScorer:
     def load_probes(corpus_name: str,
                     probes_name: str
                     ) -> List[str]:
-        p = config.Dirs.probes / corpus_name / 'dp' / f'{probes_name}.txt'
-        res = p.read_text().split('\n')
+        path = config.Dirs.probes / corpus_name / 'dp' / f'{probes_name}.txt'
+        res = path.read_text().split('\n')
         assert len(res) == len(set(res))
         return res
 
@@ -92,16 +99,17 @@ class DPScorer:
         """convert a context (one or more y-words) which is an instance of a tuple to a string"""
         return '_'.join(yw)
 
-    def _make_q(self,
+    def _make_p(self,
                 probes_name: str,
+                e=0,
                 ) -> np.ndarray:
         """
-        make theoretical next-word probability distribution,
+        make the true next-word probability distribution (by convention called "p"),
         which is defined as each word representing an iid sample from the distribution.
         """
 
         if probes_name == 'unconditional':  # "unconditional" is a category whose members are all words in vocab
-            return self._make_unconditional_q()
+            return self._make_unconditional_p()
 
         # get slice of ct matrix
         probes = self.name2probes[probes_name]
@@ -110,23 +118,23 @@ class DPScorer:
         sliced_ct_mat = self.ct_mat.tocsc()[row_ids, :]
         slice_ct_mat_sum = sliced_ct_mat.sum().sum().item()
 
-        # make q, the probability distribution over y-words given some category.
+        # make p, the true probability distribution over y-words given some category.
         # assumes there is a single distribution generating all probes
         res = []
         for col_id, xw in enumerate(self.x_words):
             if xw in probes:  # a test-word is not allowed to be next-word of a test-word
-                prob = 0.0
+                f = e
             else:
                 xw_frequency = sliced_ct_mat[:, col_id].sum()
                 if xw_frequency > 0.0:
-                    prob = xw_frequency / slice_ct_mat_sum
+                    f = xw_frequency
                 else:
-                    prob = 0.0
-            res.append(prob)
-        return np.array(res)
+                    f = e
+            res.append(f)
+        return np.array(res) / np.sum(res)
 
-    def _make_unconditional_q(self
-                        ) -> np.ndarray:
+    def _make_unconditional_p(self
+                              ) -> np.ndarray:
         """
         make theoretical next-word distribution for the "average" word;
         that is, what is the best next-word distribution given any word from the vocabulary,
