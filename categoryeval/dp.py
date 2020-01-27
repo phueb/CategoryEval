@@ -1,6 +1,7 @@
 from typing import List, Union
 import numpy as np
 from collections import Counter
+from pyitlib import discrete_random_variable as drv
 
 from categoryeval.representation import make_context_by_term_matrix
 from categoryeval.utils import split
@@ -51,48 +52,31 @@ class DPScorer:
                 predictions_mat: np.ndarray,
                 probes_name: str,
                 return_mean: bool = True,
-                return_mutual_info: bool = False,
+                metric: str = 'ce'
                 ) -> Union[float, List[float]]:
         """
         measure bits divergence of a set of next-word predictions from prototype next-word probability distribution,
         where the prototype is the category to which all probes labeled "probes_name" belong.
-        dp = distance-to-prototype
+        dp = divergence-from-prototype
         """
         assert np.ndim(predictions_mat) == 2
         assert np.sum(predictions_mat[0]).round(1).item() == 1.0, np.sum(predictions_mat[0]).round(1).item()
 
-        if return_mutual_info:
-            fn = self._mutual_info
+        if metric == 'x':
+            fn = drv.entropy_cross
+        elif metric == 'ce':
+            fn = drv.entropy_conditional
         else:
-            fn = self._calc_kl_divergence
+            raise AttributeError('Invalid arg to "metric".')
 
-        # kld divergence between each word's predicted and expected prob distribution over context
+        # compare each word's predicted and expected next-word probability distribution
         q = self.name2q[probes_name]
-        klds = [fn(p, q) for p in predictions_mat]
+        res = [fn(p, q) for p in predictions_mat]
 
         if return_mean:
-            return np.mean(klds).item()
+            return np.mean(res).item()
         else:
-            return klds
-
-    @staticmethod
-    def _mutual_info(p: np.ndarray,
-                     q: np.ndarray,
-                     ) -> float:
-
-        return NotImplementedError  # TODO implement
-
-    @staticmethod
-    def _calc_kl_divergence(p: np.ndarray,
-                            q: np.ndarray,
-                            epsilon=0.00001,
-                            ) -> float:
-        assert len(p) == len(q), (len(p), len(q))
-
-        pe = p + epsilon
-        qe = q + epsilon
-        res = np.sum(pe * np.log2(pe / qe)).item()
-        return res
+            return res
 
     @staticmethod
     def load_probes(corpus_name: str,
