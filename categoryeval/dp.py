@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Tuple
 import numpy as np
 from collections import Counter
 from pyitlib import discrete_random_variable as drv
@@ -15,7 +15,7 @@ class DPScorer:
 
     def __init__(self,
                  corpus_name: str,
-                 probes_names: List[str],  # a list of names for files with probe words
+                 probes_names: Tuple[str, ...],  # a list of names for files with probe words
                  tokens: List[str],  # the tokens which will be used for computing prototype representation
                  types: List[str],
                  num_parts: int,  # number of parts to split tokens - required to create name2probe2part
@@ -28,7 +28,7 @@ class DPScorer:
         self.corpus_name = corpus_name
         self.probes_names = probes_names
         self.num_parts = num_parts
-        self.name2probes = {name: types if name == 'unconditional' else (self.load_probes(corpus_name, name))
+        self.name2probes = {name: list(types) if name == 'unconditional' else (self.load_probes(corpus_name, name))
                             for name in self.probes_names}
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
@@ -101,7 +101,7 @@ class DPScorer:
 
     def _make_p(self,
                 probes_name: str,
-                e=0,
+                e=0.00000000001,  # probabilities cannot be zero -otherwise cross-entropy is inf
                 ) -> np.ndarray:
         """
         make the true next-word probability distribution (by convention called "p"),
