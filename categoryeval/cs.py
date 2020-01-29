@@ -1,14 +1,13 @@
-from typing import List, Union, Tuple, Dict
+from typing import Tuple, Dict
 import numpy as np
 from pyitlib import discrete_random_variable as drv
 
-from categoryeval import config
 from categoryeval.probestore import ProbeStore
 
 
-class NIScorer:
+class CSScorer:
     """
-    computes (N)eighbor (I)nterference:
+    computes category-separation:
     a measure of how close next-word probability distributions for one category are to those of another
     """
 
@@ -18,7 +17,7 @@ class NIScorer:
                  w2id: Dict[str, int]
                  ) -> None:
 
-        print('Initializing NIScorer...')
+        print('Initializing CSScorer...')
 
         assert len(probes_names) == len(set(probes_names))
 
@@ -26,7 +25,7 @@ class NIScorer:
         self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id)
                            for probes_name in probes_names}
 
-    def calc_ni(self,
+    def calc_cs(self,
                 ps: np.ndarray,
                 qs: np.ndarray,
                 metric: str = 'js',
@@ -41,7 +40,7 @@ class NIScorer:
         assert np.ndim(qs) == 2
         assert np.sum(qs[0]).round(1).item() == 1.0, np.sum(qs[0]).round(1).item()
 
-        print('Computing ni...')
+        print('Computing cs...')
 
         ps_sample = ps[np.random.choice(len(ps), size=min(len(ps), len(qs), max_rows), replace=False)]
         qs_sample = qs[np.random.choice(len(qs), size=min(len(ps), len(qs), max_rows), replace=False)]
