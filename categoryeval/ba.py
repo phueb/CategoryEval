@@ -11,7 +11,8 @@ class BAScorer:
     def __init__(self,
                  corpus_name: str,
                  probes_names: List[str],
-                 w2id: Dict[str, int]):
+                 w2id: Dict[str, int],
+                 ) -> None:
 
         print('Initializing BAScorer...')
 
