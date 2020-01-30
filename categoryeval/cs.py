@@ -45,9 +45,6 @@ class CSScorer:
         ps_sample = ps[np.random.choice(len(ps), size=min(len(ps), len(qs), max_rows), replace=False)]
         qs_sample = qs[np.random.choice(len(qs), size=min(len(ps), len(qs), max_rows), replace=False)]
 
-        print(ps_sample.shape)
-        print(qs_sample.shape)
-
         if metric == 'xe':
             return drv.entropy_cross_pmf(ps_sample, qs_sample, base=2, cartesian_product=True).mean()
         elif metric == 'js':

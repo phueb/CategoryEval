@@ -1,11 +1,9 @@
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Dict
 import numpy as np
-from collections import Counter
 from pyitlib import discrete_random_variable as drv
 
+from categoryeval.probestore import ProbeStore
 from categoryeval.representation import make_context_by_term_matrix
-from categoryeval.utils import split
-from categoryeval import config
 
 
 class DPScorer:
@@ -16,9 +14,8 @@ class DPScorer:
     def __init__(self,
                  corpus_name: str,
                  probes_names: Tuple[str, ...],  # a list of names for files with probe words
+                 w2id: Dict[str, int],
                  tokens: List[str],  # the tokens which will be used for computing prototype representation
-                 types: List[str],
-                 num_parts: int,  # number of parts to split tokens - required to create name2probe2part
                  ) -> None:
 
         print('Initializing DPScorer...')
@@ -27,9 +24,8 @@ class DPScorer:
 
         self.corpus_name = corpus_name
         self.probes_names = probes_names
-        self.num_parts = num_parts
-        self.name2probes = {name: list(types) if name == 'unconditional' else (self.load_probes(corpus_name, name))
-                            for name in self.probes_names}
+        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id)
+                           for probes_name in probes_names}
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
         # rows index contexts, and columns index next-words
@@ -37,16 +33,6 @@ class DPScorer:
         self.total_frequency = self.ct_mat.sum().sum().item()
         self.y_words = [self.tuple2str(yw) for yw in y_words_]  # convert tuple to str
         self.name2p = {name: self._make_p(name) for name in self.probes_names}
-
-        # make name2part2probes - assign probes to a corpus partition
-        split_size = len(tokens) // num_parts
-        part2w2f = {n: Counter(tokens_part) for n, tokens_part in enumerate(split(tokens, split_size))}
-        self.name2part2probes = {name: {part: [] for part in range(num_parts)}
-                                 for name in self.probes_names}
-        for name, probes in self.name2probes.items():
-            for probe in probes:
-                part = np.argmax([part2w2f[part][probe] for part in range(num_parts)])
-                self.name2part2probes[name][part].append(probe)
 
     def calc_dp(self,
                 qs: np.ndarray,
@@ -86,15 +72,6 @@ class DPScorer:
             return res
 
     @staticmethod
-    def load_probes(corpus_name: str,
-                    probes_name: str
-                    ) -> List[str]:
-        path = config.Dirs.probes / corpus_name / 'dp' / f'{probes_name}.txt'
-        res = path.read_text().split('\n')
-        assert len(res) == len(set(res))
-        return res
-
-    @staticmethod
     def tuple2str(yw):
         """convert a context (one or more y-words) which is an instance of a tuple to a string"""
         return '_'.join(yw)
@@ -112,11 +89,10 @@ class DPScorer:
             return self._make_unconditional_p()
 
         # get slice of ct matrix
-        probes = self.name2probes[probes_name]
+        probes = self.name2store[probes_name].types
         row_ids = [self.y_words.index(w) for w in probes]
         assert row_ids
         sliced_ct_mat = self.ct_mat.tocsc()[row_ids, :]
-        slice_ct_mat_sum = sliced_ct_mat.sum().sum().item()
 
         # make p, the true probability distribution over y-words given some category.
         # assumes there is a single distribution generating all probes

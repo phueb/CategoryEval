@@ -24,7 +24,7 @@ class ProbeStore(object):
     @cached_property
     def probe2cat(self):
         probe2cat = {}
-        p = config.Dirs.probes / self.corpus_name / 'ba' / f'{self.probes_name}.txt'
+        p = config.Dirs.probes / self.corpus_name / f'{self.probes_name}.txt'
         with p.open('r') as f:
             for line in f:
                 data = line.strip().strip('\n').split()
