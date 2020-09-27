@@ -15,34 +15,43 @@ class ProbeStore(object):
                  corpus_name: str,
                  probes_name: str,
                  w2id: Dict[str, int],
-                 excluded: Optional[Set] = None):
+                 excluded: Optional[Set] = None,
+                 warn: bool = True,
+                 ):
         self.corpus_name = corpus_name
         self.probes_name = probes_name
         self.w2id = w2id  # this is a dict mapping all vocabulary words to their IDs
         self.excluded = {} if excluded is None else excluded
+        self.warn = warn
 
     @cached_property
     def probe2cat(self):
         probe2cat = {}
         p = configs.Dirs.probes / self.corpus_name / f'{self.probes_name}.txt'
+        num_total = 0
         with p.open('r') as f:
             for line in f:
                 data = line.strip().strip('\n').split()
                 probe = data[0]
                 cat = data[1]
                 if probe not in self.w2id:
-                    print(f'WARNING: Probe {probe: <12} not in vocabulary -> Excluded from analysis')
+                    if self.warn:
+                        print(f'WARNING: Probe {probe: <12} not in vocabulary -> Excluded from analysis')
                 elif probe in self.excluded:
-                    print(f'WARNING: Probe {probe: <12} in excluded list  -> Excluded from analysis')
+                    if self.warn:
+                        print(f'WARNING: Probe {probe: <12} in excluded list  -> Excluded from analysis')
                 else:
                     probe2cat[probe] = cat
+                num_total += 1
+
+        print('Num probes in w2id: {}/{}'.format(len(probe2cat), num_total))
+
         return probe2cat
 
     @cached_property
     def types(self):
         probes = sorted(self.probe2cat.keys())
         probe_set = SortedSet(probes)
-        print('Num probes: {}'.format(len(probe_set)))
         return probe_set
 
     @cached_property

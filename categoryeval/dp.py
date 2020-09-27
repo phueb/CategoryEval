@@ -17,6 +17,7 @@ class DPScorer:
                  w2id: Dict[str, int],
                  tokens: List[str],  # the tokens which will be used for computing prototype representation
                  excluded_probes: Optional[List[str]] = None,
+                 warn: bool = True,
                  ) -> None:
 
         print('Initializing DPScorer...')
@@ -25,8 +26,8 @@ class DPScorer:
 
         self.corpus_name = corpus_name
         self.probes_names = probes_names
-        self.excluded_probes = excluded_probes or []
-        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id)
+        self.excluded_probes = excluded_probes or set()
+        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id, self.excluded_probes, warn)
                            for probes_name in probes_names}
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
