@@ -3,7 +3,7 @@ from sortedcontainers import SortedSet
 import numpy as np
 from typing import List, Optional, Dict, Set
 
-from categoryeval import config
+from categoryeval import configs
 
 
 class ProbeStore(object):
@@ -24,7 +24,7 @@ class ProbeStore(object):
     @cached_property
     def probe2cat(self):
         probe2cat = {}
-        p = config.Dirs.probes / self.corpus_name / f'{self.probes_name}.txt'
+        p = configs.Dirs.probes / self.corpus_name / f'{self.probes_name}.txt'
         with p.open('r') as f:
             for line in f:
                 data = line.strip().strip('\n').split()

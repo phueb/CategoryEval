@@ -3,7 +3,7 @@ import numpy as np
 from bayes_opt import BayesianOptimization
 from functools import partial
 
-from categoryeval import config
+from categoryeval import configs
 from categoryeval.probestore import ProbeStore
 
 
@@ -93,11 +93,11 @@ class BAScorer:
             fun = calc_probes_ck
         else:
             raise AttributeError('Invalid arg to "cluster_metric".')
-        bo = BayesianOptimization(fun, {'thr': (0.0, 1.0)}, verbose=config.BA.verbose)
-        bo.init_points.extend(config.BA.eval_thresholds + [[pred_sims.mean()]])
+        bo = BayesianOptimization(fun, {'thr': (0.0, 1.0)}, verbose=configs.BA.verbose)
+        bo.init_points.extend(configs.BA.eval_thresholds + [[pred_sims.mean()]])
         gp_params = {"alpha": 1e-5, "n_restarts_optimizer": 2}  # without this, warnings about predicted variance < 0
-        bo.maximize(init_points=config.BA.num_opt_init_steps, n_iter=config.BA.num_opt_steps,
-                    acq="poi", xi=config.BA.xi, **gp_params)  # smaller xi: exploitation
+        bo.maximize(init_points=configs.BA.num_opt_init_steps, n_iter=configs.BA.num_opt_steps,
+                    acq="poi", xi=configs.BA.xi, **gp_params)  # smaller xi: exploitation
         best_thr = bo.res['max']['max_params']['thr']
         # use best_thr
         results = fun(best_thr)
