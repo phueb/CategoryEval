@@ -1,4 +1,4 @@
-from typing import List, Union, Tuple, Dict
+from typing import List, Union, Tuple, Dict, Optional
 import numpy as np
 from pyitlib import discrete_random_variable as drv
 
@@ -16,6 +16,7 @@ class DPScorer:
                  probes_names: Tuple[str, ...],  # a list of names for files with probe words
                  w2id: Dict[str, int],
                  tokens: List[str],  # the tokens which will be used for computing prototype representation
+                 excluded_probes: Optional[List[str]] = None,
                  ) -> None:
 
         print('Initializing DPScorer...')
@@ -24,6 +25,7 @@ class DPScorer:
 
         self.corpus_name = corpus_name
         self.probes_names = probes_names
+        self.excluded_probes = excluded_probes or []
         self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id)
                            for probes_name in probes_names}
 
@@ -89,7 +91,7 @@ class DPScorer:
             return self._make_unconditional_p()
 
         # get slice of ct matrix
-        probes = self.name2store[probes_name].types
+        probes = [p for p in self.name2store[probes_name].types if p not in self.excluded_probes]
         row_ids = [self.y_words.index(w) for w in probes]
         assert row_ids
         sliced_ct_mat = self.ct_mat.tocsc()[row_ids, :]
