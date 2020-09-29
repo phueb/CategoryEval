@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Set, Optional
 import numpy as np
 from bayes_opt import BayesianOptimization
 from functools import partial
@@ -12,6 +12,7 @@ class BAScorer:
                  corpus_name: str,
                  probes_names: List[str],
                  w2id: Dict[str, int],
+                 excluded: Optional[Set[str]] = None,
                  ) -> None:
 
         print('Initializing BAScorer...')
@@ -19,7 +20,7 @@ class BAScorer:
         assert len(probes_names) == len(set(probes_names))
 
         self.probes_names = probes_names
-        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id)
+        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id, excluded)
                            for probes_name in probes_names}
         
     def calc_score(self, pred_sims, gold_sims, metric='ba'):
