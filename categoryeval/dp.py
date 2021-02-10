@@ -13,7 +13,7 @@ class DPScorer:
 
     def __init__(self,
                  corpus_name: str,
-                 probes_names: Tuple[str, ...],  # a list of names for files with probe words
+                 probes_names: List[str],  # a list of names for files with probe words
                  w2id: Dict[str, int],
                  tokens: List[str],  # the tokens which will be used for computing prototype representation
                  excluded_probes: Optional[List[str]] = None,

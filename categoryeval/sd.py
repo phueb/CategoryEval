@@ -1,11 +1,11 @@
 from typing import List, Dict, Set, Optional
 import numpy as np
-from sklearn.metrics.cluster import silhouette_score, calinski_harabasz_score
 
+from categoryeval.s_dbw import S_Dbw
 from categoryeval.probestore import ProbeStore
 
 
-class SIScorer:
+class SDScorer:
     def __init__(self,
                  corpus_name: str,
                  probes_names: List[str],
@@ -13,7 +13,7 @@ class SIScorer:
                  excluded: Optional[Set[str]] = None,
                  ) -> None:
 
-        print('Initializing SIScorer...')
+        print('Initializing SDScorer...')
 
         assert len(probes_names) == len(set(probes_names))
 
@@ -21,13 +21,21 @@ class SIScorer:
         self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id, excluded)
                            for probes_name in probes_names}
 
-    def calc_si(self,
+    def calc_sd(self,
                 representations: np.array,
                 category_labels: List[int],
                 metric: str = 'cosine',
                 ):
         """
+        using code from https://github.com/alashkov83/S_Dbw
         """
-        print(f'Computing silhouette scores...')
+        print(f'Computing S-Dbw score...')
 
-        return silhouette_score(representations, category_labels, metric)
+        return S_Dbw(representations,
+                     category_labels,
+                     centers_id=None,
+                     method='Tong',
+                     alg_noise='bind',
+                     centr='mean',
+                     nearest_centr=True,
+                     metric=metric)

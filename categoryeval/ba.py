@@ -10,7 +10,7 @@ from categoryeval.probestore import ProbeStore
 class BAScorer:
     def __init__(self,
                  corpus_name: str,
-                 probes_names: List[str],
+                 probes_names: List[str],  # a list of names for files with probe words
                  w2id: Dict[str, int],
                  excluded: Optional[Set[str]] = None,
                  ) -> None:
@@ -22,7 +22,7 @@ class BAScorer:
         self.probes_names = probes_names
         self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id, excluded)
                            for probes_name in probes_names}
-        
+
     def calc_score(self, pred_sims, gold_sims, metric='ba'):
         """
         pred_sims is matrix of floats with shape [num_probes, num_probes]
