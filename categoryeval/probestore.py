@@ -14,13 +14,12 @@ class ProbeStore(object):
     def __init__(self,
                  corpus_name: str,
                  probes_name: str,
-                 w2id: Dict[str, int],
                  excluded: Optional[Set] = None,
                  warn: bool = True,
                  ):
         self.corpus_name = corpus_name
         self.probes_name = probes_name
-        self.w2id = w2id  # this is a dict mapping all vocabulary words to their IDs
+
         self.excluded = {} if excluded is None else excluded
         self.warn = warn
 
@@ -34,17 +33,15 @@ class ProbeStore(object):
                 data = line.strip().strip('\n').split()
                 probe = data[0]
                 cat = data[1]
-                if probe not in self.w2id:
-                    if self.warn:
-                        print(f'WARNING: Probe {probe: <12} not in vocabulary -> Excluded from analysis')
-                elif probe in self.excluded:
+
+                if probe in self.excluded:
                     if self.warn:
                         print(f'WARNING: Probe {probe: <12} in excluded list  -> Excluded from analysis')
                 else:
                     probe2cat[probe] = cat
                 num_total += 1
 
-        print('Num probes in w2id: {}/{}'.format(len(probe2cat), num_total))
+        print('Num probes loaded={}'.format(len(probe2cat)))
 
         return probe2cat
 
@@ -87,14 +84,6 @@ class ProbeStore(object):
         return num_cats
 
     # //////////////////////////////////////////////// for evaluation
-
-    @cached_property
-    def vocab_ids(self) -> List[int]:
-        """
-        return IDs of probes in vocabulary.
-        used for retrieving the correct word representation for each probe
-        """
-        return [self.w2id[p] for p in self.types]
 
     @cached_property
     def gold_sims(self):

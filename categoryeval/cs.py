@@ -14,7 +14,6 @@ class CSScorer:
     def __init__(self,
                  corpus_name: str,
                  probes_names: List[str],  # a list of names for files with probe words
-                 w2id: Dict[str, int],
                  excluded: Optional[Set[str]] = None,
                  ) -> None:
 
@@ -23,7 +22,7 @@ class CSScorer:
         assert len(probes_names) == len(set(probes_names))
 
         self.probes_names = probes_names
-        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, w2id, excluded)
+        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, excluded)
                            for probes_name in probes_names}
 
     def calc_cs(self,
