@@ -1,10 +1,6 @@
 from cytoolz import itertoolz
-from typing import List
+from typing import List, Dict, Set
 
-
-def split(l, split_size):
-    for i in range(0, len(l), split_size):
-        yield l[i:i + split_size]
 
 
 def get_sliding_windows(window_size: int,

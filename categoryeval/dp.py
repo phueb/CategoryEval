@@ -12,33 +12,22 @@ class DPScorer:
     """
 
     def __init__(self,
-                 corpus_name: str,
-                 probes_names: List[str],  # a list of names for files with probe words
-                 tokens: List[str],  # the tokens which will be used for computing prototype representation
-                 excluded_probes: Optional[List[str]] = None,
-                 warn: bool = True,
+                 probe2cat: Dict[str, str],
+                 tokens: List[str],
                  ) -> None:
 
         print('Initializing DPScorer...')
-
-        assert len(probes_names) == len(set(probes_names))
-
-        self.corpus_name = corpus_name
-        self.probes_names = probes_names
-        self.excluded_probes = excluded_probes or set()
-        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, self.excluded_probes, warn)
-                           for probes_name in probes_names}
+        self.probe_store = ProbeStore(probe2cat)
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
         # rows index contexts, and columns index next-words
         self.ct_mat, self.x_words, y_words_ = make_context_by_term_matrix(tokens, context_size=1)
         self.total_frequency = self.ct_mat.sum().sum().item()
         self.y_words = [self.tuple2str(yw) for yw in y_words_]  # convert tuple to str
-        self.name2p = {name: self._make_p(name) for name in self.probes_names}
+        self.p = self._make_p()
 
     def calc_dp(self,
                 qs: np.ndarray,
-                probes_name: str,
                 return_mean: bool = True,
                 metric: str = 'js'
                 ) -> Union[float, List[float]]:
@@ -65,7 +54,7 @@ class DPScorer:
             raise AttributeError('Invalid arg to "metric".')
 
         # compare each word's predicted and expected next-word probability distribution
-        p = self.name2p[probes_name]
+        p = self.p
         res = [fn(p, q) for q in qs]
 
         if return_mean:
@@ -79,7 +68,7 @@ class DPScorer:
         return '_'.join(yw)
 
     def _make_p(self,
-                probes_name: str,
+                is_unconditional: bool = False,
                 e=0.00000000001,  # probabilities cannot be zero -otherwise cross-entropy is inf
                 ) -> np.ndarray:
         """
@@ -87,11 +76,11 @@ class DPScorer:
         which is defined as each word representing an iid sample from the distribution.
         """
 
-        if probes_name == 'unconditional':  # "unconditional" is a category whose members are all words in vocab
+        if is_unconditional:  # "unconditional" is a category whose members are all words in vocab
             return self._make_unconditional_p()
 
         # get slice of ct matrix
-        probes = [p for p in self.name2store[probes_name].types if p not in self.excluded_probes]
+        probes = self.probe_store.types
         row_ids = [self.y_words.index(w) for w in probes]
         assert row_ids
         sliced_ct_mat = self.ct_mat.tocsc()[row_ids, :]

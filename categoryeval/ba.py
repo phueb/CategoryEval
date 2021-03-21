@@ -9,18 +9,11 @@ from categoryeval.probestore import ProbeStore
 
 class BAScorer:
     def __init__(self,
-                 corpus_name: str,
-                 probes_names: List[str],  # a list of names for files with probe words
-                 excluded: Optional[Set[str]] = None,
+                 probe2cat: Dict[str, str],
                  ) -> None:
 
         print('Initializing BAScorer...')
-
-        assert len(probes_names) == len(set(probes_names))
-
-        self.probes_names: List[str] = probes_names
-        self.name2store: Dict[str: ProbeStore] = {probes_name: ProbeStore(corpus_name, probes_name, excluded)
-                           for probes_name in probes_names}
+        self.probe_store = ProbeStore(probe2cat)
 
     def calc_score(self, pred_sims, gold_sims, metric='ba'):
         """

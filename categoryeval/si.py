@@ -7,18 +7,11 @@ from categoryeval.probestore import ProbeStore
 
 class SIScorer:
     def __init__(self,
-                 corpus_name: str,
-                 probes_names: List[str],
-                 excluded: Optional[Set[str]] = None,
+                 probe2cat: Dict[str, str],
                  ) -> None:
 
         print('Initializing SIScorer...')
-
-        assert len(probes_names) == len(set(probes_names))
-
-        self.probes_names = probes_names
-        self.name2store = {probes_name: ProbeStore(corpus_name, probes_name, excluded)
-                           for probes_name in probes_names}
+        self.probe_store = ProbeStore(probe2cat)
 
     def calc_si(self,
                 representations: np.array,
