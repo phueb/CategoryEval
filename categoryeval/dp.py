@@ -85,7 +85,7 @@ class DPScorer:
         assert row_ids
         sliced_ct_mat = self.ct_mat.tocsc()[row_ids, :]
 
-        # make p, the true probability distribution over y-words given some category.
+        # make p, the true probability distribution over x-words given some category.
         # assumes there is a single distribution generating all probes
         res = []
         for col_id, xw in enumerate(self.x_words):
