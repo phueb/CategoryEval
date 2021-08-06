@@ -20,6 +20,5 @@ class SIScorer:
                 ):
         """
         """
-        print(f'Computing silhouette scores...')
 
         return silhouette_score(representations, category_labels, metric)

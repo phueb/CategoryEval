@@ -22,7 +22,7 @@ class CSScorer:
     def calc_cs(self,
                 ps: np.ndarray,
                 qs: np.ndarray,
-                metric: str = 'js',
+                metric: str = 'xe',  # 'xe' is faster than 'js'
                 max_rows: int = 32,
                 ) -> float:
         """
@@ -31,10 +31,9 @@ class CSScorer:
         "p" is a true probability distribution
         "q" is an approximation
         """
+        assert np.ndim(ps) == 2
         assert np.ndim(qs) == 2
         assert np.sum(qs[0]).round(1).item() == 1.0, np.sum(qs[0]).round(1).item()
-
-        print('Computing cs...')
 
         ps_sample = ps[np.random.choice(len(ps), size=min(len(ps), len(qs), max_rows), replace=False)]
         qs_sample = qs[np.random.choice(len(qs), size=min(len(ps), len(qs), max_rows), replace=False)]

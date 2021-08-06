@@ -21,7 +21,6 @@ class SDScorer:
         """
         using code from https://github.com/alashkov83/S_Dbw
         """
-        print(f'Computing S-Dbw score...')
 
         return S_Dbw(representations,
                      category_labels,

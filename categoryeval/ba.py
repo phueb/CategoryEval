@@ -20,7 +20,6 @@ class BAScorer:
         pred_sims is matrix of floats with shape [num_probes, num_probes]
         gold_sims is matrix of integers with shape [num_probes, num_probes]
         """
-        print(f'Computing {metric}...')
     
         if pred_sims.shape != gold_sims.shape:
             raise ValueError(f'Shape of predicted={pred_sims.shape} does not match gold similarities ={gold_sims.shape}')

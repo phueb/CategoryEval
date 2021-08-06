@@ -27,11 +27,12 @@ class RAScorer:
         intuition: if two inputs (which are nearby) produce large divergences at the output,
         it can be said that the model's input-output mapping is ragged.
         """
-        print(f'Computing raggedness...')
 
-        assert len(ps) == len(qs)
+        if ps.shape != qs.shape:
+            raise ValueError(f'First 2 arguments to RAScorer.calc_score must have same shapes,'
+                             f' but shapes are {ps.shape} and {qs.shape}')
 
-        rand_ids = np.random.randint(0, len(ps), max_rows)
+        rand_ids = np.random.choice(len(ps), max_rows, replace=False)
         ps_sample = ps[rand_ids]
         qs_sample = qs[rand_ids]
 
