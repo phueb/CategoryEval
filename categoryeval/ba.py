@@ -12,10 +12,14 @@ class BAScorer:
                  probe2cat: Dict[str, str],
                  ) -> None:
 
-        print('Initializing BAScorer...')
         self.probe_store = ProbeStore(probe2cat)
 
-    def calc_score(self, pred_sims, gold_sims, metric='ba'):
+    def calc_score(self,
+                   pred_sims: np.array,
+                   gold_sims: np.array,
+                   metric: str = 'ba',
+                   return_threshold: bool = False,
+                   ) -> float:
         """
         pred_sims is matrix of floats with shape [num_probes, num_probes]
         gold_sims is matrix of integers with shape [num_probes, num_probes]
@@ -94,7 +98,11 @@ class BAScorer:
         # use best_thr
         results = fun(best_thr)
         res = np.mean(results)
-        return res
+
+        if return_threshold:
+            return res, best_thr
+        else:
+            return res
 
     def check_nans(self, mat, name='unnamed'):
         if np.any(np.isnan(mat)):

@@ -10,7 +10,6 @@ class SIScorer:
                  probe2cat: Dict[str, str],
                  ) -> None:
 
-        print('Initializing SIScorer...')
         self.probe_store = ProbeStore(probe2cat)
 
     def calc_si(self,

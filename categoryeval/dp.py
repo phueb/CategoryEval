@@ -16,7 +16,6 @@ class DPScorer:
                  tokens: List[str],
                  ) -> None:
 
-        print('Initializing DPScorer...')
         self.probe_store = ProbeStore(probe2cat)
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
@@ -24,12 +23,13 @@ class DPScorer:
         self.ct_mat, self.x_words, y_words_ = make_context_by_term_matrix(tokens, context_size=1)
         self.total_frequency = self.ct_mat.sum().sum().item()
         self.y_words = [self.tuple2str(yw) for yw in y_words_]  # convert tuple to str
-        self.p = self._make_p()
+
 
     def calc_dp(self,
                 qs: np.ndarray,
                 return_mean: bool = True,
-                metric: str = 'js'
+                metric: str = 'js',
+                prototype_is_unigram_distribution: bool = False,
                 ) -> Union[float, List[float]]:
         """
         measure bits divergence of a set of next-word predictions from prototype next-word probability distribution,
@@ -38,9 +38,17 @@ class DPScorer:
 
         "p" is a true probability distribution
         "q" is an approximation
+
+        note:
+            computation of divergence checks for NaNs. this is done in 2 ways, slow or fast, depending on dtype:
+            if dtype is float64, fast check is performed (float32 results in slow check)
+            the slow check is much slower and should be avoided.
         """
         assert np.ndim(qs) == 2
         assert np.sum(qs[0]).round(1).item() == 1.0, np.sum(qs[0]).round(1).item()
+
+        if qs.dtype != np.float64:
+            raise TypeError('To aovid slow NaN check, cast input to CSScorer.calc_score to float64.')
 
         if metric == 'ce':
             raise NotImplementedError
@@ -53,8 +61,13 @@ class DPScorer:
         else:
             raise AttributeError('Invalid arg to "metric".')
 
-        # compare each word's predicted and expected next-word probability distribution
-        p = self.p
+        # determine prototype representation
+        if prototype_is_unigram_distribution:
+            p = self._make_p(is_unconditional=True)
+        else:
+            p = self._make_p(is_unconditional=False)
+
+        # do the computation: compare each word's predicted and expected next-word probability distribution
         res = [fn(p, q) for q in qs]
 
         if return_mean:

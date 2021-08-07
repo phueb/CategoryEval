@@ -10,7 +10,6 @@ class SDScorer:
                  probe2cat: Dict[str, str],
                  ) -> None:
 
-        print('Initializing SDScorer...')
         self.probe_store = ProbeStore(probe2cat)
 
     def calc_sd(self,
