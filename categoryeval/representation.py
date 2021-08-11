@@ -7,6 +7,7 @@ from categoryeval.utils import get_sliding_windows
 
 
 def make_context_by_term_matrix(tokens: List[str],
+                                x_words: List[str],
                                 context_size: Optional[int] = 1
                                 ):
     """
@@ -17,8 +18,6 @@ def make_context_by_term_matrix(tokens: List[str],
 
     print('Making context-term matrix...')
 
-    # x_words
-    x_words = SortedSet(tokens)
     num_xws = len(x_words)
     xw2col_id = {t: n for n, t in enumerate(x_words)}
 
@@ -54,4 +53,4 @@ def make_context_by_term_matrix(tokens: List[str],
     if res.shape != expected_shape:
         raise SystemExit(f'Result does not match expected shape={expected_shape}')
 
-    return res, x_words, y_words
+    return res, y_words

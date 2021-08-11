@@ -14,23 +14,24 @@ class DPScorer:
     def __init__(self,
                  probe2cat: Dict[str, str],
                  tokens: List[str],
+                 vocab: List[str],
                  ) -> None:
 
         self.probe_store = ProbeStore(probe2cat)
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
         # rows index contexts, and columns index next-words
-        self.ct_mat, self.x_words, y_words_ = make_context_by_term_matrix(tokens, context_size=1)
+        self.ct_mat, y_words_ = make_context_by_term_matrix(tokens, vocab, context_size=1)
         self.total_frequency = self.ct_mat.sum().sum().item()
+        self.x_words = vocab
         self.y_words = [self.tuple2str(yw) for yw in y_words_]  # convert tuple to str
 
-
-    def calc_dp(self,
-                qs: np.ndarray,
-                return_mean: bool = True,
-                metric: str = 'js',
-                prototype_is_unigram_distribution: bool = False,
-                ) -> Union[float, List[float]]:
+    def score(self,
+              qs: np.ndarray,
+              return_mean: bool = True,
+              metric: str = 'js',
+              prototype_is_unigram_distribution: bool = False,
+              ) -> Union[float, List[float]]:
         """
         measure bits divergence of a set of next-word predictions from prototype next-word probability distribution,
         where the prototype is the category to which all probes labeled "probes_name" belong.
@@ -66,6 +67,10 @@ class DPScorer:
             p = self._make_p(is_unconditional=True)
         else:
             p = self._make_p(is_unconditional=False)
+
+        if qs.shape[1] != len(p):
+            raise ValueError(f'Shape of input to category-spread computaion has {qs.shape[1]} columns '
+                             f'but {len(p)} are required')
 
         # do the computation: compare each word's predicted and expected next-word probability distribution
         res = [fn(p, q) for q in qs]
