@@ -48,8 +48,6 @@ class CSScorer:
             ps = ps[np.random.choice(len(ps), size=max_rows, replace=False)]
             qs = qs[np.random.choice(len(qs), size=max_rows, replace=False)]
 
-        print(f'Inputs to cs computation have shape {ps.shape} and {qs.shape}', flush=True)
-
         if metric == 'xe':
             return drv.entropy_cross_pmf(ps, qs, base=2, cartesian_product=True).mean()
         elif metric == 'js':
