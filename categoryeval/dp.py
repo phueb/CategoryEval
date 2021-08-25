@@ -2,7 +2,6 @@ from typing import List, Union, Tuple, Dict, Optional
 import numpy as np
 from pyitlib import discrete_random_variable as drv
 
-from categoryeval.probestore import ProbeStore
 from categoryeval.representation import make_context_by_term_matrix
 
 
@@ -12,12 +11,12 @@ class DPScorer:
     """
 
     def __init__(self,
-                 probe2cat: Dict[str, str],
-                 tokens: List[str],
-                 vocab: List[str],
+                 types_eval: List[str],  # the words that make up the category to be evaluated
+                 tokens: List[str],  # the corpus
+                 vocab: List[str],  # the vocabulary of the corpus
                  ) -> None:
 
-        self.probe_store = ProbeStore(probe2cat)
+        self.types_eval = types_eval
 
         # make p for each name - p is a theoretical probability distribution over x-words (next-words)
         # rows index contexts, and columns index next-words
@@ -34,13 +33,10 @@ class DPScorer:
               ) -> Union[float, List[float]]:
         """
         measure bits divergence of a set of next-word predictions from prototype next-word probability distribution,
-        where the prototype is the category to which all probes labeled "probes_name" belong.
+        where the prototype is the category to which all probes belong.
         dp = divergence-from-prototype
 
-        "p" is a true probability distribution
-        "q" is an approximation
-
-        note:
+        notes:
             computation of divergence checks for NaNs. this is done in 2 ways, slow or fast, depending on dtype:
             if dtype is float64, fast check is performed (float32 results in slow check)
             the slow check is much slower and should be avoided.
@@ -49,7 +45,7 @@ class DPScorer:
         assert np.sum(qs[0]).round(1).item() == 1.0, np.sum(qs[0]).round(1).item()
 
         if qs.dtype != np.float64:
-            raise TypeError('To aovid slow NaN check, cast input to CSScorer.calc_score to float64.')
+            raise TypeError('To aovid slow NaN check, cast input to float64.')
 
         if metric == 'ce':
             raise NotImplementedError
@@ -69,7 +65,7 @@ class DPScorer:
             p = self._make_p(is_unconditional=False)
 
         if qs.shape[1] != len(p):
-            raise ValueError(f'Shape of input to category-spread computaion has {qs.shape[1]} columns '
+            raise ValueError(f'Shape of input has {qs.shape[1]} columns '
                              f'but {len(p)} are required')
 
         # do the computation: compare each word's predicted and expected next-word probability distribution
@@ -98,8 +94,7 @@ class DPScorer:
             return self._make_unconditional_p()
 
         # get slice of ct matrix
-        probes = self.probe_store.types
-        row_ids = [self.y_words.index(w) for w in probes]
+        row_ids = [self.y_words.index(w) for w in self.types_eval]
         assert row_ids
         sliced_ct_mat = self.ct_mat.tocsc()[row_ids, :]
 
@@ -107,7 +102,7 @@ class DPScorer:
         # assumes there is a single distribution generating all probes
         res = []
         for col_id, xw in enumerate(self.x_words):
-            if xw in probes:  # a test-word is not allowed to be next-word of a test-word
+            if xw in self.types_eval:  # a test-word is not allowed to be next-word of a test-word
                 f = e
             else:
                 xw_frequency = sliced_ct_mat[:, col_id].sum()

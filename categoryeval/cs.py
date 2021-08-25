@@ -2,8 +2,6 @@ from typing import List, Dict, Set, Optional
 import numpy as np
 from pyitlib import discrete_random_variable as drv
 
-from categoryeval.probestore import ProbeStore
-
 
 class CSScorer:
     """
@@ -12,10 +10,9 @@ class CSScorer:
     """
 
     def __init__(self,
-                 probe2cat: Dict[str, str],
                  ) -> None:
+        pass
 
-        self.probe_store = ProbeStore(probe2cat)
 
     def calc_score(self,
                    ps: np.ndarray,

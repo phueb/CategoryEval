@@ -4,7 +4,6 @@ from bayes_opt import BayesianOptimization
 from functools import partial
 
 from categoryeval import configs
-from categoryeval.probestore import ProbeStore
 
 
 class BAScorer:
@@ -12,7 +11,9 @@ class BAScorer:
                  probe2cat: Dict[str, str],
                  ) -> None:
 
-        self.probe_store = ProbeStore(probe2cat)
+        self.probe2cat = probe2cat
+
+        self.gold_sims = self.make_gold_sims()
 
     def calc_score(self,
                    pred_sims: np.array,
@@ -103,6 +104,24 @@ class BAScorer:
             return res, best_thr
         else:
             return res
+
+    def make_gold_sims(self):
+        """
+        returns binary matrix of shape [num_probes, num_probes] which defines the category structure.
+        used for evaluation.
+        """
+
+        probes = sorted(self.probe2cat.keys())
+        num_rows = len(probes)
+        num_cols = len(probes)
+        res = np.zeros((num_rows, num_cols))
+        for i in range(num_rows):
+            probe1 = probes[i]
+            for j in range(num_cols):
+                probe2 = probes[j]
+                if self.probe2cat[probe1] == self.probe2cat[probe2]:
+                    res[i, j] = 1
+        return res.astype(np.bool)
 
     def check_nans(self, mat, name='unnamed'):
         if np.any(np.isnan(mat)):

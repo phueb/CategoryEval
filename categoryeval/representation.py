@@ -38,7 +38,7 @@ def make_context_by_term_matrix(tokens: List[str],
         next_word = next_context[-1]  # -1 is correct because windows slide by 1 word
         try:
             col_id = xw2col_id[next_word]
-        except KeyError:  # when probe_store is passed, only probes are n xw2col_id
+        except KeyError:  # when eval_types are probes, only probes are in xw2col_id
             continue
         # collect
         row_ids.append(row_id)
