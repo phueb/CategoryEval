@@ -6,7 +6,7 @@ Research code for evaluating category knowledge acquired by word embedding model
 
 ## Metrics
 
-- Classification Performance
+- Balanced Accuracy
 
 A measure how well pairs of learned representations can be correctly judged to belong to the same category
 
@@ -18,11 +18,6 @@ A measure of how abstract learned representations are.
 
 A measure of spread between learned representations that belong to the same category
 
--  Silhouette Score
-
-A measure of how well the similarity structure of learned representations captures the gold category structure 
-
-
 ## Usage
 
 ```python
@@ -31,8 +26,8 @@ from categoryeval.ba import BAScorer
 probe2cat = {'door': 'FURNITURE', 'cat': 'ANIMAL'}
 scorer = BAScorer(probe2cat)
 
-gold_sims = scorer.gold_sims
-balanced_accuracy = scorer.calc_score(pred_sims, gold_sims)  # predicted, and gold similarity matrices for probe words
+pred_sims = model.predict()
+balanced_accuracy = scorer.calc_score(pred_sims, scorer.gold_sims)  # predicted, and gold similarity matrices for probe words
 ```
 ## Compatibility
 
