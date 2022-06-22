@@ -13,7 +13,7 @@ setup(
         'scipy==1.4.1',
         'scikit-learn==0.21.3',
         'matplotlib==3.1.2',
-        'numpy==1.18.1',
+        'numpy==1.22.0',
         'pyitlib==0.2.2',
     ],
     url='https://github.com/phueb/CategoryEval',
