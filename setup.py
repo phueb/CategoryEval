@@ -10,7 +10,7 @@ setup(
     install_requires=[
         'bayesian-optimization==0.6',
         'cytoolz==0.10.1',
-        'scipy==1.4.1',
+        'scipy==1.10.0',
         'scikit-learn==0.21.3',
         'matplotlib==3.1.2',
         'numpy==1.18.1',
